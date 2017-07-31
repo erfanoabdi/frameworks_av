@@ -608,8 +608,16 @@ MediaProfiles::getInstance()
     Mutex::Autolock lock(sLock);
     if (!sIsInitialized) {
         char value[PROPERTY_VALUE_MAX];
+        char camd[PROPERTY_VALUE_MAX];
+        char rc_id[PROPERTY_VALUE_MAX];
+        char defaultXmlFile[PROPERTY_VALUE_MAX];
         if (property_get("media.settings.xml", value, NULL) <= 0) {
-            const char *defaultXmlFile = "/etc/media_profiles.xml";
+            sprintf(defaultXmlFile, "/etc/media_profiles.xml");
+            if (property_get("init.svc.mods_camd", camd, NULL) > 0)
+                if (property_get("camera.mot.rc_id", rc_id, NULL) > 0)
+                    if (!strcmp(camd, "-1"))
+                        sprintf(defaultXmlFile, "/etc/media_profiles_mod%s.xml", rc_id);
+            ALOGV("Instance file : %s", defaultXmlFile);
             FILE *fp = fopen(defaultXmlFile, "r");
             if (fp == NULL) {
                 ALOGW("could not find media config xml file");
